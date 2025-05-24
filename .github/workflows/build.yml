@@ -47,20 +47,20 @@ jobs:
           msbuild kdmapper.sln /p:Configuration=Release /p:Platform=x64 /m
         shell: cmd
 
-      - name: Debug Output Directory Structure
+      - name: Search for EXE Files
         run: |
-          dir /s /p
-          if exist "kdmapper\bin\Release\kdmapper.exe" echo "Found kdmapper.exe in kdmapper\bin\Release"
-          if exist "bin\Release\kdmapper.exe" echo "Found kdmapper.exe in bin\Release"
-          if exist "Release\kdmapper.exe" echo "Found kdmapper.exe in Release"
+          echo "Searching for all .exe files in the repository..."
+          dir "*.exe" /s /p
         shell: cmd
 
       - name: Create Artifact Directory
         run: |
           mkdir -p artifacts
+          echo "Attempting to copy known possible locations for kdmapper.exe..."
           if exist "kdmapper\bin\Release\kdmapper.exe" copy "kdmapper\bin\Release\kdmapper.exe" "artifacts\kdmapper.exe"
           if exist "bin\Release\kdmapper.exe" copy "bin\Release\kdmapper.exe" "artifacts\kdmapper.exe"
           if exist "Release\kdmapper.exe" copy "Release\kdmapper.exe" "artifacts\kdmapper.exe"
+          if exist "kdmapper\Release\kdmapper.exe" copy "kdmapper\Release\kdmapper.exe" "artifacts\kdmapper.exe"
           dir artifacts
         shell: cmd
 
@@ -70,3 +70,4 @@ jobs:
           name: kdmapper-release
           path: artifacts/*
           retention-days: 7
+          if-no-files-found: warn
