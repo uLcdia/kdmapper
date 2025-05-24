@@ -5,14 +5,14 @@ on:
   workflow_dispatch: # Allows manual triggering of the workflow
   push:
     branches:
-      - main # Adjust this to your main branch name if different
+      - master
     paths:
       - '**.sln' # Trigger on changes to the solution file
       - '**.cpp' # Trigger on changes to source files
       - '**.h' # Trigger on changes to header files
   pull_request:
     branches:
-      - main # Adjust this to your main branch name if different
+      - master
     paths:
       - '**.sln'
       - '**.cpp'
@@ -33,7 +33,7 @@ jobs:
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v1.3
         with:
-          vs-version: '17.0' # Adjust based on the Visual Studio version you need (2022 is 17.0)
+          vs-version: '17.0'
 
       # Install Windows SDK (optional if not already included in runner)
       - name: Install Windows SDK
@@ -62,7 +62,7 @@ jobs:
 
       # Upload the build artifacts
       - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: kdmapper-release
           path: artifacts/kdmapper.exe
