@@ -1,18 +1,17 @@
 name: Build KDMapper
 
-# Define when the workflow should run
 on:
-  workflow_dispatch: # Allows manual triggering of the workflow
+  workflow_dispatch:
   push:
     branches:
-      - master
+      - main
     paths:
-      - '**.sln' # Trigger on changes to the solution file
-      - '**.cpp' # Trigger on changes to source files
-      - '**.h' # Trigger on changes to header files
+      - '**.sln'
+      - '**.cpp'
+      - '**.h'
   pull_request:
     branches:
-      - master
+      - main
     paths:
       - '**.sln'
       - '**.cpp'
@@ -20,57 +19,54 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest # Use Windows runner for building Windows drivers
+    runs-on: windows-latest
 
     steps:
-      # Checkout the repository code
       - name: Checkout code
         uses: actions/checkout@v3
         with:
-          submodules: recursive # If there are submodules, include them
+          submodules: recursive
 
-      # Set up MSBuild for Visual Studio
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v1.3
         with:
           vs-version: '17.0'
 
-      # Install Windows SDK (optional if not already included in runner)
       - name: Install Windows SDK
         run: |
           choco install -y windows-sdk-10.0
         shell: powershell
 
-      # Install Windows Driver Kit (WDK)
       - name: Install Windows Driver Kit
         run: |
           choco install -y windowsdriverkit10
         shell: powershell
 
-      # Build the solution for Release configuration
       - name: Build KDMapper Solution
         run: |
           msbuild kdmapper.sln /p:Configuration=Release /p:Platform=x64 /m
         shell: cmd
 
-      # Create a directory for artifacts
+      - name: Debug Output Directory Structure
+        run: |
+          dir /s /p
+          if exist "kdmapper\bin\Release\kdmapper.exe" echo "Found kdmapper.exe in kdmapper\bin\Release"
+          if exist "bin\Release\kdmapper.exe" echo "Found kdmapper.exe in bin\Release"
+          if exist "Release\kdmapper.exe" echo "Found kdmapper.exe in Release"
+        shell: cmd
+
       - name: Create Artifact Directory
         run: |
           mkdir -p artifacts
-          copy bin\Release\kdmapper.exe artifacts\kdmapper.exe
+          if exist "kdmapper\bin\Release\kdmapper.exe" copy "kdmapper\bin\Release\kdmapper.exe" "artifacts\kdmapper.exe"
+          if exist "bin\Release\kdmapper.exe" copy "bin\Release\kdmapper.exe" "artifacts\kdmapper.exe"
+          if exist "Release\kdmapper.exe" copy "Release\kdmapper.exe" "artifacts\kdmapper.exe"
+          dir artifacts
         shell: cmd
 
-      # Upload the build artifacts
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: kdmapper-release
-          path: artifacts/kdmapper.exe
-          retention-days: 7 # Retain artifacts for 7 days (adjust as needed)
-
-      # Optional: Notify on build failure (e.g., via GitHub status or comment)
-      - name: Notify on Failure
-        if: failure()
-        run: |
-          echo "Build failed. Check the logs for details."
-        shell: powershell
+          path: artifacts/*
+          retention-days: 7
